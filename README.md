@@ -1,6 +1,12 @@
 # eWorkHelper
 
-eWorkHelper 是一个面向 Microsoft Excel 桌面版的 VSTO 加载项，当前版本为 `1.1.260822.6`。它提供批量文本过滤与取消合并并填充工具，并尽量保持 Excel 原有数据、格式和其他字段筛选状态。
+eWorkHelper 是 [iWorkHelper](https://github.com/iWorkHelper) 旗下的 Microsoft Excel 桌面版 VSTO 加载项。它提供批量文本过滤与取消合并并填充工具，并尽量保持 Excel 原有数据、格式和其他字段筛选状态。
+
+项目主页：<https://github.com/iWorkHelper/eWorkHelper>
+
+## 当前版本
+
+当前版本为 `1.1.260822.6`。版本号规则见 [`docs/Versioning.md`](docs/Versioning.md)。
 
 ## 主要功能
 
@@ -22,23 +28,39 @@ eWorkHelper 是一个面向 Microsoft Excel 桌面版的 VSTO 加载项，当前
 - Visual Studio 2022
 - Windows Forms
 
-## 运行环境要求
+## 运行环境
 
 - Windows。
 - Microsoft Excel 桌面版。
 - Microsoft Visual Studio Tools for Office Runtime。
 - 运行位数应与所使用的 Office/VSTO 环境兼容。
 
-本仓库当前提供源代码，不包含预构建安装包或签名发布包。
+## 安装 / 使用
 
-## 开发环境要求
+最新 Release：<https://github.com/iWorkHelper/eWorkHelper/releases/latest>
+
+Release 中的编译组件包用于版本核验和受控部署，不是可直接双击安装的 ClickOnce/MSI 安装包。正式部署仍需维护者在受保护环境中使用受信任证书完成签名、信任和安装配置。
+
+开发调试时：
+
+1. 在 Visual Studio 中将 `eWorkhelper` 设为启动项目。
+2. 选择 `Debug | Any CPU` 并按 F5；VSTO 项目将启动新的 Excel 实例。
+3. 在 Excel 中打开工作簿，选择需要过滤列中的一个单元格。
+4. 打开 `eWorkHelper` 选项卡，点击“批量过滤”。
+5. 每行输入一个条件，选择匹配方式，然后点击“应用过滤”。
+
+如需取消合并并填充，请选择一个或多个包含合并单元格的区域，然后点击 Ribbon 中的“取消合并并填充”。公式会按 Excel 的 R1C1 复制语义填充。如果当前工作表没有 AutoFilter，工具会要求选择数据标题行；取消选择不会修改工作表。
+
+> `eWorkhelper` 是现有 Visual Studio 工程内部标识。为避免影响 VSTO、ClickOnce、调试和升级兼容，本轮不调整其大小写；面向用户的品牌名称统一为 `eWorkHelper`。
+
+## 开发环境
 
 - Visual Studio 2022。
 - 安装“.NET 桌面开发”和“Office/SharePoint 开发”相关工作负载或等效 VSTO 工具。
 - .NET Framework 4.8 Developer Pack。
 - 本机安装 Microsoft Excel 桌面版，用于 F5 调试和人工功能验证。
 
-## 项目结构
+### 项目结构
 
 ```text
 eWorkhelper.sln              Visual Studio 解决方案
@@ -66,24 +88,6 @@ docs/                        开发、架构、功能、测试、版本和发布
 
 公开项目文件默认不绑定开发者证书。需要制作签名部署包时，请仅在受保护的本地或发布环境中配置证书，不要提交证书、私钥、指纹或用户级发布配置。
 
-## 安装与使用
-
-### 开发调试
-
-1. 在 Visual Studio 中将 `eWorkhelper` 设为启动项目。
-2. 选择 `Debug | Any CPU` 并按 F5；VSTO 项目将启动新的 Excel 实例。
-3. 在 Excel 中打开工作簿，选择需要过滤列中的一个单元格。
-4. 打开 `eWorkHelper` 选项卡，点击“批量过滤”。
-5. 每行输入一个条件，选择匹配方式，然后点击“应用过滤”。
-
-如需取消合并并填充，请选择一个或多个包含合并单元格的区域，然后点击 Ribbon 中的“取消合并并填充”。公式会按 Excel 的 R1C1 复制语义填充。
-
-如果当前工作表没有 AutoFilter，工具会要求选择数据标题行。取消选择不会修改工作表。
-
-### 分发安装
-
-GitHub Release 中的编译组件包用于版本核验和受控部署，不是可直接双击安装的 ClickOnce/MSI 安装包。正式部署仍需维护者在受保护环境中使用受信任证书完成签名、信任和安装配置。
-
 ## 已知限制
 
 - 仅支持 Windows 上的 Microsoft Excel 桌面版，不支持 Excel 网页版或 macOS 版。
@@ -100,6 +104,20 @@ GitHub Release 中的编译组件包用于版本核验和受控部署，不是�
 ## 安全与隐私
 
 项目不应包含 API Key、Token、密码、证书、私钥、签名凭据、个人或组织身份信息、内部地址及本机绝对路径。公开发布前必须执行 [`docs/Release/ReleaseChecklist.md`](docs/Release/ReleaseChecklist.md) 中的安全检查。批量过滤逻辑在本地 Excel/VSTO 进程中运行；当前代码没有网络上传功能。
+
+## 文档入口
+
+- [开发说明](docs/Development.md)
+- [开发约束](docs/DevelopmentConstraints.md)
+- [架构说明](docs/Architecture/VstoArchitecture.md)
+- [版本号规范](docs/Versioning.md)
+- [发布检查清单](docs/Release/ReleaseChecklist.md)
+- [回归测试清单](docs/Testing/RegressionChecklist.md)
+- [Release Notes](RELEASE_NOTES.md)
+
+## Release
+
+查看[最新 Release](https://github.com/iWorkHelper/eWorkHelper/releases/latest)或[全部 Releases](https://github.com/iWorkHelper/eWorkHelper/releases)。发布资产的用途和限制见“安装 / 使用”章节。
 
 ## License
 
