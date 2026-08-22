@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("eWorkhelper")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("eWorkHelper Contributors")]
+[assembly: AssemblyCompany("eWorkHelper")]
 [assembly: AssemblyProduct("eWorkhelper")]
 [assembly: AssemblyCopyright("Copyright © eWorkHelper Contributors 2026")]
 [assembly: AssemblyTrademark("")]
@@ -33,5 +33,5 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: AssemblyInformationalVersion("1.0.260822.1")]
+[assembly: AssemblyInformationalVersion("1.1.260822.6")]
 

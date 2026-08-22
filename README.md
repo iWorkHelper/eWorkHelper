@@ -1,6 +1,6 @@
 # eWorkHelper
 
-eWorkHelper 是一个面向 Microsoft Excel 桌面版的 VSTO 加载项。目前提供批量文本过滤工具：从当前单元格确定目标列，将多行条件转换为 Excel 原生 AutoFilter 条件，并尽量保留工作表中其他字段已有的筛选状态。
+eWorkHelper 是一个面向 Microsoft Excel 桌面版的 VSTO 加载项，当前版本为 `1.1.260822.6`。它提供批量文本过滤与取消合并并填充工具，并尽量保持 Excel 原有数据、格式和其他字段筛选状态。
 
 ## 主要功能
 
@@ -10,6 +10,8 @@ eWorkHelper 是一个面向 Microsoft Excel 桌面版的 VSTO 加载项。目前
 - 支持 Excel 表格（ListObject）、已有 AutoFilter 区域，以及由用户选择标题行后建立的普通数据区域。
 - 使用 Excel 原生 AutoFilter，不写改单元格、不创建辅助列或临时工作表。
 - “清除本次过滤”只针对本工具最近处理的目标字段，不主动清除其他字段的筛选条件。
+- 支持一次处理当前选区涉及的全部合并区域，取消合并后以原值或公式填充各单元格。
+- Ribbon 末端提供“关于”按钮，显示插件简介和从程序集动态读取的完整版本号。
 
 ## 技术栈
 
@@ -45,6 +47,7 @@ ThisAddIn.*                  VSTO Add-in 主机项和生成代码
 MainRibbon.*                 Ribbon Designer、事件入口和资源
 BatchFilterForm.cs           批量过滤窗口
 BatchFilterService.cs        范围识别、条件匹配和 AutoFilter 逻辑
+UnmergeAndFillService.cs     合并区域发现、去重、取消合并与内容填充
 Properties/                  程序集、资源和设置
 docs/                        开发、架构、功能、测试、版本和发布文档
 ```
@@ -73,11 +76,13 @@ docs/                        开发、架构、功能、测试、版本和发布
 4. 打开 `eWorkHelper` 选项卡，点击“批量过滤”。
 5. 每行输入一个条件，选择匹配方式，然后点击“应用过滤”。
 
+如需取消合并并填充，请选择一个或多个包含合并单元格的区域，然后点击 Ribbon 中的“取消合并并填充”。公式会按 Excel 的 R1C1 复制语义填充。
+
 如果当前工作表没有 AutoFilter，工具会要求选择数据标题行。取消选择不会修改工作表。
 
 ### 分发安装
 
-仓库尚未提供可直接安装的签名 ClickOnce/MSI 包。维护者需要在独立、受保护的发布环境中完成签名、信任和部署配置后再分发。
+GitHub Release 中的编译组件包用于版本核验和受控部署，不是可直接双击安装的 ClickOnce/MSI 安装包。正式部署仍需维护者在受保护环境中使用受信任证书完成签名、信任和安装配置。
 
 ## 已知限制
 

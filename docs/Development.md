@@ -26,6 +26,7 @@
 ### 正式功能
 
 - [`Features/BatchFiltering.md`](Features/BatchFiltering.md)：批量文本过滤的当前行为、范围规则和限制。
+- [`Features/UnmergeAndFill.md`](Features/UnmergeAndFill.md)：取消合并并填充的处理流程、公式策略、边界和验收标准。
 
 ### 测试
 
@@ -41,8 +42,16 @@
 - Windows 桌面版 Microsoft Excel 宿主。
 - 解决方案：`eWorkhelper.sln`；项目：`eWorkhelper.csproj`。
 - 唯一 Ribbon 实现：`MainRibbon.cs`、`MainRibbon.Designer.cs`、`MainRibbon.resx`。
-- 当前正式功能：批量文本过滤，使用 C# 内存匹配和 Excel 原生 AutoFilter。
-- 当前完整产品版本：`1.0.260822.1`，由 `AssemblyInformationalVersion` 表示。
+- 当前正式功能：批量文本过滤、取消合并并填充，以及位于 Ribbon 末端、动态显示程序集版本的“关于”入口。
+- 当前完整产品版本：`1.1.260822.6`，由 `AssemblyInformationalVersion` 表示。
+
+## 已有筛选自动加载
+
+- 打开批量过滤窗口时，仅当当前目标字段的 `Filters[fieldIndex].On` 为 `true` 才加载内容；只有筛选箭头而目标字段未实际过滤时，文本框保持为空。
+- 若目标 Filter 仍与本次 Add-in 会话中 eWorkHelper 最近保存的 Filter 签名一致，则恢复用户原始多行条件和匹配方式，不展开为实际匹配结果。
+- 若筛选来自 Excel 菜单、插件启动前或无法匹配运行时状态，则读取当前整个 AutoFilter 状态下目标列的可见数据，去除空值、按首次出现顺序去重，并以“等于”模式回填。
+- 可见数据通过目标 DataRange 的 `SpecialCells(xlCellTypeVisible)` 获取，并按 Areas 批量读取 `Value2`；不逐单元格读取、不清除当前或其他字段筛选。
+- 当前筛选为零行时文本框保持为空并显示状态提示，不自动清除筛选。
 - 公开源码不绑定开发者证书，不包含签名凭据或预构建安装包。
 
 ## 已验证基线
@@ -67,6 +76,7 @@ ThisAddIn.*
 MainRibbon.*
 BatchFilterForm.cs
 BatchFilterService.cs
+UnmergeAndFillService.cs
 Properties/
 docs/
 ```

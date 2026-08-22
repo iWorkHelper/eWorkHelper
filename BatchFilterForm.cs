@@ -133,7 +133,20 @@ namespace eWorkhelper
             Controls.Add(closeButton);
             Controls.Add(resultLabel);
             CancelButton = closeButton;
+
+            BatchFilterInitialState initialState = service.LoadInitialState(context);
+            conditionsTextBox.Text = string.Join(Environment.NewLine, initialState.Conditions);
+            SetMatchMode(initialState.MatchMode);
+            resultLabel.Text = initialState.StatusMessage;
             Shown += delegate { conditionsTextBox.Focus(); };
+        }
+
+        private void SetMatchMode(BatchFilterMatchMode mode)
+        {
+            equalsRadioButton.Checked = mode == BatchFilterMatchMode.Equals;
+            notEqualsRadioButton.Checked = mode == BatchFilterMatchMode.NotEquals;
+            containsRadioButton.Checked = mode == BatchFilterMatchMode.Contains;
+            notContainsRadioButton.Checked = mode == BatchFilterMatchMode.NotContains;
         }
 
         private void ApplyButton_Click(object sender, EventArgs e)
@@ -190,6 +203,18 @@ namespace eWorkhelper
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            //
+            // BatchFilterForm
+            //
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "BatchFilterForm";
+            this.ResumeLayout(false);
+
         }
     }
 }

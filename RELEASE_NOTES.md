@@ -2,7 +2,7 @@
 
 ## Version
 
-v1.0.260822.1
+v1.1.260822.6
 
 ## Release date
 
@@ -10,7 +10,7 @@ v1.0.260822.1
 
 ## Overview
 
-This is the first public source release of eWorkHelper, an Excel VSTO Add-in that provides a batch text-filtering workflow backed by Excel's native AutoFilter.
+This eWorkHelper Excel VSTO Add-in build adds batch unmerge-and-fill while retaining the existing native AutoFilter workflow.
 
 ## Features
 
@@ -20,6 +20,10 @@ This is the first public source release of eWorkHelper, an Excel VSTO Add-in tha
 - Works with Excel tables, existing AutoFilter ranges, and user-selected header rows for ordinary data regions.
 - Applies results through the target field's native AutoFilter without changing cell values or creating helper columns or worksheets.
 - Clears only the most recently managed target field while leaving other fields' filters in place.
+- Adds an About command at the end of the eWorkHelper Ribbon tab, showing a short introduction and the full product version read from assembly metadata.
+- Restores eWorkHelper's original batch-filter conditions and match mode when reopening the same active filter; for external Excel filters, loads visible unique target-column values in Equals mode.
+- Adds an Unmerge and Fill command that processes every merged area touched by the current selection, including Ctrl-selected areas and partial intersections.
+- Uses Excel's native UnMerge operation, deduplicates merge areas, and fills each original area with its value or R1C1 formula without changing worksheet structure.
 
 ## Technical information
 
@@ -27,7 +31,7 @@ This is the first public source release of eWorkHelper, an Excel VSTO Add-in tha
 - Visual Studio Tools for Office (VSTO) Excel Add-in.
 - Excel/Office Interop with embedded interop types.
 - Windows Forms dialog and VSTO Ribbon Designer resources.
-- Product version (`AssemblyInformationalVersion`): `1.0.260822.1`.
+- Product version (`AssemblyInformationalVersion`): `1.1.260822.6`.
 - CLR/VSTO compatibility version: `1.0.0.0`.
 
 ## Requirements
@@ -42,7 +46,8 @@ This is the first public source release of eWorkHelper, an Excel VSTO Add-in tha
 - The current user interface is in Chinese.
 - Matching is case-insensitive text matching; regular expressions and formula criteria are not supported.
 - Clear-operation state is held in the current Add-in process and is not persisted after the Add-in unloads.
-- This source release does not include a signed installer or prebuilt deployment package.
+- Excel does not expose this multi-area operation as a transactional VSTO undo unit; if a later area fails, already completed areas cannot be rolled back automatically.
+- The compiled component asset is intended for version verification and controlled deployment; it is not a ready-to-install ClickOnce/MSI package.
 - Signed deployment and target Office version/bitness combinations require validation in the maintainer's release environment.
 
 ## Security and privacy notes

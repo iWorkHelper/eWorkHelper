@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -17,7 +18,9 @@ namespace eWorkhelper
     internal sealed class BatchFilterContext
     {
         internal Excel.Application Application { get; set; }
+        internal Excel.Workbook Workbook { get; set; }
         internal Excel.Worksheet Worksheet { get; set; }
+        internal Excel.AutoFilter AutoFilter { get; set; }
         internal Excel.Range FilterRange { get; set; }
         internal Excel.Range DataRange { get; set; }
         internal string ColumnDisplayName { get; set; }
@@ -31,6 +34,13 @@ namespace eWorkhelper
     {
         internal int CheckedCount { get; set; }
         internal int MatchedCount { get; set; }
+    }
+
+    internal sealed class BatchFilterInitialState
+    {
+        internal IList<string> Conditions { get; set; }
+        internal BatchFilterMatchMode MatchMode { get; set; }
+        internal string StatusMessage { get; set; }
     }
 
     internal sealed class BatchFilterService
@@ -74,7 +84,7 @@ namespace eWorkhelper
                         return false;
                     }
 
-                    return TryBuildContext(application, worksheet, existingRange, targetColumn, null, out context, out errorMessage);
+                    return TryBuildContext(application, worksheet, autoFilter, existingRange, targetColumn, null, out context, out errorMessage);
                 }
 
                 Excel.Range newFilterRange;
@@ -90,7 +100,7 @@ namespace eWorkhelper
                 }
 
                 newFilterRange.AutoFilter();
-                return TryBuildContext(application, worksheet, newFilterRange, targetColumn, null, out context, out errorMessage);
+                return TryBuildContext(application, worksheet, worksheet.AutoFilter, newFilterRange, targetColumn, null, out context, out errorMessage);
             }
             catch (COMException)
             {
@@ -119,6 +129,41 @@ namespace eWorkhelper
             }
 
             return conditions;
+        }
+
+        internal BatchFilterInitialState LoadInitialState(BatchFilterContext context)
+        {
+            Excel.Filter filter = GetTargetFilter(context);
+            if (filter == null || !filter.On)
+            {
+                return new BatchFilterInitialState
+                {
+                    Conditions = new List<string>(),
+                    MatchMode = BatchFilterMatchMode.Contains,
+                    StatusMessage = "请输入过滤条件。"
+                };
+            }
+
+            string filterSignature = TryGetFilterSignature(filter);
+            if (currentState != null && currentState.Matches(context, filterSignature))
+            {
+                return new BatchFilterInitialState
+                {
+                    Conditions = currentState.GetConditions(),
+                    MatchMode = currentState.MatchMode,
+                    StatusMessage = "已恢复上次批量过滤条件。"
+                };
+            }
+
+            IList<string> visibleValues = ReadVisibleUniqueValues(context.DataRange);
+            return new BatchFilterInitialState
+            {
+                Conditions = visibleValues,
+                MatchMode = BatchFilterMatchMode.Equals,
+                StatusMessage = visibleValues.Count == 0
+                    ? "当前筛选无可见数据。"
+                    : string.Format("已加载当前筛选的 {0} 个可见唯一值。", visibleValues.Count)
+            };
         }
 
         internal BatchFilterResult Apply(BatchFilterContext context, IList<string> conditions, BatchFilterMatchMode mode)
@@ -158,7 +203,12 @@ namespace eWorkhelper
                     ApplyNativeFilter(context, criteria);
                 }
 
-                currentState = new AppliedFilterState(context.Worksheet, context.HeaderRow, context.TargetColumn);
+                Excel.Filter filter = GetTargetFilter(context);
+                currentState = new AppliedFilterState(
+                    context,
+                    conditions,
+                    mode,
+                    filter == null || !filter.On ? null : TryGetFilterSignature(filter));
                 return new BatchFilterResult { CheckedCount = context.DataRowCount, MatchedCount = matchedCount };
             }
             finally
@@ -205,7 +255,7 @@ namespace eWorkhelper
             listObject.ShowAutoFilter = true;
             int fieldIndex = targetColumn - listObject.Range.Column + 1;
             Excel.Range targetDataRange = listObject.ListColumns[fieldIndex].DataBodyRange;
-            return TryBuildContext(application, worksheet, listObject.Range, targetColumn, targetDataRange, out context, out errorMessage);
+            return TryBuildContext(application, worksheet, listObject.AutoFilter, listObject.Range, targetColumn, targetDataRange, out context, out errorMessage);
         }
 
         private static bool TryCreateFilterRangeFromSelectedHeader(Excel.Application application, Excel.Worksheet worksheet, int targetColumn, out Excel.Range filterRange, out bool cancelled, out string errorMessage)
@@ -260,7 +310,7 @@ namespace eWorkhelper
             return true;
         }
 
-        private static bool TryBuildContext(Excel.Application application, Excel.Worksheet worksheet, Excel.Range filterRange, int targetColumn, Excel.Range knownDataRange, out BatchFilterContext context, out string errorMessage)
+        private static bool TryBuildContext(Excel.Application application, Excel.Worksheet worksheet, Excel.AutoFilter autoFilter, Excel.Range filterRange, int targetColumn, Excel.Range knownDataRange, out BatchFilterContext context, out string errorMessage)
         {
             context = null;
             errorMessage = null;
@@ -283,7 +333,9 @@ namespace eWorkhelper
             context = new BatchFilterContext
             {
                 Application = application,
+                Workbook = worksheet.Parent as Excel.Workbook,
                 Worksheet = worksheet,
+                AutoFilter = autoFilter,
                 FilterRange = filterRange,
                 DataRange = dataRange,
                 ColumnDisplayName = string.IsNullOrWhiteSpace(headerText) ? columnLetter : columnLetter + " - " + headerText,
@@ -293,6 +345,122 @@ namespace eWorkhelper
                 DataRowCount = dataRange.Rows.Count
             };
             return true;
+        }
+
+        private static Excel.Filter GetTargetFilter(BatchFilterContext context)
+        {
+            if (context.AutoFilter == null || context.FieldIndex < 1 || context.FieldIndex > context.AutoFilter.Filters.Count)
+            {
+                return null;
+            }
+
+            return context.AutoFilter.Filters[context.FieldIndex];
+        }
+
+        private static string GetFilterSignature(Excel.Filter filter)
+        {
+            List<string> parts = new List<string>
+            {
+                ((int)filter.Operator).ToString(CultureInfo.InvariantCulture),
+                BuildCriterionSignature(GetFilterCriterion(filter, "Criteria1"))
+            };
+
+            try
+            {
+                parts.Add(BuildCriterionSignature(GetFilterCriterion(filter, "Criteria2")));
+            }
+            catch (Exception ex) when (ex is COMException || ex is TargetInvocationException)
+            {
+                parts.Add(string.Empty);
+            }
+
+            return string.Join("|", parts.ToArray());
+        }
+
+        private static string TryGetFilterSignature(Excel.Filter filter)
+        {
+            try
+            {
+                return GetFilterSignature(filter);
+            }
+            catch (COMException)
+            {
+                return null;
+            }
+            catch (InvalidCastException)
+            {
+                return null;
+            }
+            catch (TargetInvocationException)
+            {
+                return null;
+            }
+        }
+
+        private static object GetFilterCriterion(Excel.Filter filter, string propertyName)
+        {
+            return filter.GetType().InvokeMember(
+                propertyName,
+                BindingFlags.GetProperty,
+                null,
+                filter,
+                null,
+                CultureInfo.InvariantCulture);
+        }
+
+        private static string BuildCriterionSignature(object criterion)
+        {
+            Array array = criterion as Array;
+            if (array == null)
+            {
+                return BuildSignaturePart(criterion);
+            }
+
+            List<string> values = new List<string>();
+            foreach (object value in array)
+            {
+                values.Add(BuildSignaturePart(value));
+            }
+
+            values.Sort(StringComparer.Ordinal);
+            return string.Join(",", values.ToArray());
+        }
+
+        private static string BuildSignaturePart(object value)
+        {
+            string text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+            return text.Length.ToString(CultureInfo.InvariantCulture) + ":" + text;
+        }
+
+        private static IList<string> ReadVisibleUniqueValues(Excel.Range dataRange)
+        {
+            List<string> values = new List<string>();
+            HashSet<string> unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            Excel.Range visibleRange;
+            try
+            {
+                visibleRange = dataRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+            }
+            catch (COMException)
+            {
+                return values;
+            }
+
+            foreach (Excel.Range area in visibleRange.Areas)
+            {
+                object areaValues = area.Value2;
+                int rowCount = area.Rows.Count;
+                for (int rowIndex = 1; rowIndex <= rowCount; rowIndex++)
+                {
+                    string text = Convert.ToString(GetRangeValue(areaValues, rowIndex, rowCount), CultureInfo.CurrentCulture) ?? string.Empty;
+                    if (text.Length > 0 && unique.Add(text))
+                    {
+                        values.Add(text);
+                    }
+                }
+            }
+
+            return values;
         }
 
         private static object[] BuildFilterCriteria(IEnumerable<string> matchedValues)
@@ -399,20 +567,63 @@ namespace eWorkhelper
 
         private sealed class AppliedFilterState
         {
+            private readonly Excel.Workbook workbook;
             private readonly Excel.Worksheet worksheet;
+            private readonly int filterRow;
+            private readonly int filterColumn;
+            private readonly int filterRowCount;
+            private readonly int filterColumnCount;
             private readonly int headerRow;
             private readonly int targetColumn;
+            private readonly int fieldIndex;
+            private readonly IList<string> conditions;
+            private readonly string filterSignature;
 
-            internal AppliedFilterState(Excel.Worksheet worksheet, int headerRow, int targetColumn)
+            internal AppliedFilterState(BatchFilterContext context, IList<string> conditions, BatchFilterMatchMode matchMode, string filterSignature)
             {
-                this.worksheet = worksheet;
-                this.headerRow = headerRow;
-                this.targetColumn = targetColumn;
+                workbook = context.Workbook;
+                worksheet = context.Worksheet;
+                filterRow = context.FilterRange.Row;
+                filterColumn = context.FilterRange.Column;
+                filterRowCount = context.FilterRange.Rows.Count;
+                filterColumnCount = context.FilterRange.Columns.Count;
+                headerRow = context.HeaderRow;
+                targetColumn = context.TargetColumn;
+                fieldIndex = context.FieldIndex;
+                this.conditions = new List<string>(conditions);
+                MatchMode = matchMode;
+                this.filterSignature = filterSignature;
+            }
+
+            internal BatchFilterMatchMode MatchMode { get; private set; }
+
+            internal IList<string> GetConditions()
+            {
+                return new List<string>(conditions);
+            }
+
+            internal bool Matches(BatchFilterContext context, string currentFilterSignature)
+            {
+                return ReferenceEquals(workbook, context.Workbook)
+                    && ReferenceEquals(worksheet, context.Worksheet)
+                    && filterRow == context.FilterRange.Row
+                    && filterColumn == context.FilterRange.Column
+                    && filterRowCount == context.FilterRange.Rows.Count
+                    && filterColumnCount == context.FilterRange.Columns.Count
+                    && headerRow == context.HeaderRow
+                    && targetColumn == context.TargetColumn
+                    && fieldIndex == context.FieldIndex
+                    && !string.IsNullOrEmpty(filterSignature)
+                    && string.Equals(filterSignature, currentFilterSignature, StringComparison.Ordinal);
             }
 
             internal bool Matches(BatchFilterContext context)
             {
-                return ReferenceEquals(worksheet, context.Worksheet) && headerRow == context.HeaderRow && targetColumn == context.TargetColumn;
+                return ReferenceEquals(workbook, context.Workbook)
+                    && ReferenceEquals(worksheet, context.Worksheet)
+                    && headerRow == context.HeaderRow
+                    && targetColumn == context.TargetColumn
+                    && fieldIndex == context.FieldIndex;
             }
         }
     }

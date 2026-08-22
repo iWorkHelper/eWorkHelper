@@ -36,6 +36,10 @@ bld/
 *.tlog
 *.lastbuildstate
 *.unsuccessfulbuild
+*.binlog
+*.vsp
+*.vspx
+*.sap
 *.DotSettings.user
 _ReSharper*/
 
@@ -69,6 +73,10 @@ app.publish/
 *.cer
 *.crt
 *.der
+.env
+.env.*
+!.env.example
+*.local.json
 
 # Temporary, backup, and log files
 *.tmp

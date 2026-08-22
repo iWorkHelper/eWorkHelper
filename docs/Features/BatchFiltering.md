@@ -46,6 +46,16 @@ Excel Ribbon 的 `eWorkHelper` Tab 在“数据工具”Group 中提供“批量
 - 应用和清除均只操作目标 Field，不调用 `ShowAllData`，不关闭 `AutoFilterMode`。
 - “清除本次过滤”只在当前 Add-in 会话中清除本工具最近处理的同一工作表、标题行和目标列。
 
+## 已有筛选自动加载
+
+窗口打开时只检查当前目标字段。仅当对应 `Filter.On` 为 `true` 时才加载；工作表仅显示筛选箭头、当前字段仍为全选时不加载整列数据。
+
+eWorkHelper 每次应用后在 Add-in 运行时内存中保存工作簿、工作表、筛选区域边界、目标 Field、原始 Conditions、MatchMode 和目标 Filter 签名。再次打开同一字段时，只有上下文和签名仍一致才恢复原始条件与模式；任何上下文或 Filter 变化都会放弃旧状态。
+
+无法确认来源的 Excel 原生筛选回退为当前可见结果：对目标 DataRange 调用 `SpecialCells(xlCellTypeVisible)`，逐 Area 批量读取 `Value2`，在 C# 内存中去除空值并使用不区分大小写集合去重，同时保留第一次出现的文本和顺序。回填模式固定为“等于”。零可见行时保持空文本并显示状态，不修改现有筛选。
+
+读取过程不调用 `ShowAllData`，不临时取消任何 Filter，也不修改其他字段条件。
+
 ## 非破坏性保证
 
 - 不修改单元格值或公式。

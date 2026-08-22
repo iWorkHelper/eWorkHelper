@@ -2,6 +2,45 @@
 
 本日志只保留重要功能、架构、兼容性、版本和发布准备变更。临时调试过程、已失效方案及逐次尝试不作为长期记录保存。
 
+## 2026-08-22：v1.1.260822.6 正式发布准备
+
+- 按统一版本规则为最终正式发布构建分配 `1.1.260822.6`；完整产品版本写入 `AssemblyInformationalVersion`，ClickOnce/VSTO 数值发布字段使用合法的 `1.1.0.6`。此前同日候选构建未发布，最终内容变化后递增 Revision，未复用既有完整版本号。
+- 从公开项目文件移除本地临时签名证书文件名与指纹绑定，补充 Visual Studio 性能文件、二进制日志、环境文件和本地 JSON 配置忽略规则。
+- 更新 README、Release Notes、功能说明与当前版本说明；Debug / Any CPU 与 Release / Any CPU Rebuild 均通过，Error 0、Warning 0，程序集 ProductVersion 均为 `1.1.260822.6`。
+- 首轮产物审计发现旧本地证书 Subject 含环境身份信息，因此废弃该产物；最终构建改用通用 `CN=eWorkHelper Release` 临时自签名证书，构建后销毁临时私钥。候选资产复扫通过，PDB 因包含本机源码路径不进入 Release。
+- 项目没有独立自动化测试；静态与 manifest 完整性检查通过，Excel F5/GUI 和真实工作簿场景仍按回归清单标记为待人工验证。
+
+## 2026-08-22：新增取消合并并填充
+
+- 在现有 `eWorkHelper` Ribbon“数据工具”Group 中新增第二个正式大按钮“取消合并并填充”，未增加 Tab、测试 Group 或临时入口；原“批量过滤”事件和实现未修改。
+- 新增 `UnmergeAndFillService.cs`：读取当前 Selection 的全部 Areas，通过范围级 `MergeCells` 判断与递归分块剪枝发现 MergeArea；以工作簿/工作表外部绝对地址去重，每个 MergeArea 只处理一次。
+- 每个区域在 `UnMerge()` 前读取左上角内容；普通内容用 `Value2` 整块填充，空值不写入字符串，公式用 `FormulaR1C1` 整块填充并保留 Excel 相对引用复制语义。
+- 临时关闭 `ScreenUpdating`、`EnableEvents`，通过嵌套 `finally` 确保两项状态均尝试恢复；Calculation 不修改。异常由 Ribbon 使用现有 MessageBox 规范反馈，项目未引入新的日志或架构框架。
+- 同步功能设计、开发入口、VSTO 架构、回归清单、Release Notes 和版本元数据。该功能构成新的功能阶段，Minor 更新为 `1.1`，同日 Revision 递增，产品版本为 `1.1.260822.4`。
+- Debug / Any CPU 与 Release / Any CPU Rebuild 均通过，Error 0、Warning 0；两个程序集 ProductVersion 均为 `1.1.260822.4`。
+- 静态检查确认 Ribbon 无 Test/Demo/Debug 符号，核心仅有一个原生 `UnMerge()` 调用点，公式与状态恢复路径存在。仓库没有自动化测试项目；Excel F5/GUI、真实合并区域行为、公式相对引用、格式和受保护工作表异常路径仍需按回归清单人工验证。
+- 已知限制：Excel/VSTO 不为该多区域操作提供可组合的事务撤销单元；若后续区域处理失败，已完成区域无法自动回滚，但 Application 临时状态会恢复并向用户报告错误。
+
+## 2026-08-22：批量过滤窗口自动加载当前筛选内容
+
+- 修改 `BatchFilterService.cs`、`BatchFilterForm.cs`、开发说明、功能说明、回归清单、Release Notes 和版本元数据。
+- 仅当目标字段 `Filter.On` 为 true 时加载，避免有筛选箭头但字段未实际过滤时误填整列。
+- 运行时状态保存 Workbook、Worksheet、AutoFilter Range 边界、Field、MatchMode、原始 Conditions 和 Filter 签名；上下文和签名均一致时优先恢复 eWorkHelper 原始规则。
+- 外部 Excel 筛选通过目标 DataRange 的 `SpecialCells(xlCellTypeVisible)` 获取可见 Areas，每个 Area 批量读取 `Value2`，在内存中去空、按首次出现顺序进行不区分大小写去重，并以“等于”模式回填。
+- 不调用 `ShowAllData`，不取消或修改其他字段 Filter，不使用 Hidden、辅助列或临时 Sheet；零可见行保持空文本并显示状态。
+- 本次为现有功能扩展，Major/Minor 保持 `1.0`，同日 Revision 更新，产品版本为 `1.0.260822.3`。
+- 编译、自动验证和 Excel F5 实测结果在完成后补充。
+
+## 2026-08-22：新增 Ribbon 关于入口
+
+- 在 `eWorkHelper` Tab 最末端新增独立“关于”Group 和大按钮，不改变“数据工具”及批量过滤行为。
+- 点击后显示简短插件介绍和完整产品版本；版本从当前程序集的 `AssemblyInformationalVersion` 动态读取，不维护 UI 硬编码版本。
+- 本次属于小范围功能补充，不进入新的功能阶段，Major/Minor 保持 `1.0`；同日 Revision 递增，产品版本更新为 `1.0.260822.2`。
+- 同步 README、Release Notes、开发入口、架构说明和 Ribbon 回归清单。
+- Debug / Any CPU 与 Release / Any CPU Rebuild 均通过，Error 0、Warning 0；两个生成程序集的 ProductVersion 均为 `1.0.260822.2`。
+- Ribbon 静态验证确认 Group 顺序为“数据工具 → 关于”，关于事件绑定、动态 `AssemblyInformationalVersion` 读取和原批量过滤事件均正常，UI 不包含硬编码版本号。
+- 本次未执行 Excel F5/GUI 人工验证；需要人工确认 Ribbon 实际布局和关于窗口显示效果。
+
 ## 2026-08-22：Project cleanup / documentation consolidation / privacy sanitization
 
 ### 目标与范围
