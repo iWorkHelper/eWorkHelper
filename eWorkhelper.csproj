@@ -222,12 +222,12 @@
     <Compile Include="BatchFilterService.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RibbonTest.cs" />
-    <Compile Include="RibbonTest.Designer.cs">
-      <DependentUpon>RibbonTest.cs</DependentUpon>
+    <Compile Include="MainRibbon.cs" />
+    <Compile Include="MainRibbon.Designer.cs">
+      <DependentUpon>MainRibbon.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="RibbonTest.resx">
-      <DependentUpon>RibbonTest.cs</DependentUpon>
+    <EmbeddedResource Include="MainRibbon.resx">
+      <DependentUpon>MainRibbon.cs</DependentUpon>
     </EmbeddedResource>
     <AppDesigner Include="Properties\" />
   </ItemGroup>

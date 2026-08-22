@@ -2,7 +2,7 @@
 
 ## Version
 
-v1.0.0
+v1.0.260822.1
 
 ## Release date
 
@@ -27,7 +27,8 @@ This is the first public source release of eWorkHelper, an Excel VSTO Add-in tha
 - Visual Studio Tools for Office (VSTO) Excel Add-in.
 - Excel/Office Interop with embedded interop types.
 - Windows Forms dialog and VSTO Ribbon Designer resources.
-- Assembly version: `1.0.0.0`.
+- Product version (`AssemblyInformationalVersion`): `1.0.260822.1`.
+- CLR/VSTO compatibility version: `1.0.0.0`.
 
 ## Requirements
 

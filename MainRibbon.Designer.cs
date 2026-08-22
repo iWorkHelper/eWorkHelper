@@ -1,10 +1,10 @@
 namespace eWorkhelper
 {
-    partial class MaimRibbon : Microsoft.Office.Tools.Ribbon.RibbonBase
+    partial class MainRibbon : Microsoft.Office.Tools.Ribbon.RibbonBase
     {
         private System.ComponentModel.IContainer components = null;
 
-        public MaimRibbon()
+        public MainRibbon()
             : base(Globals.Factory.GetRibbonFactory())
         {
             InitializeComponent();
@@ -50,9 +50,9 @@ namespace eWorkhelper
             this.btnBatchFilter.ShowImage = true;
             this.btnBatchFilter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnBatchFilter_Click);
             // 
-            // MaimRibbon
+            // MainRibbon
             // 
-            this.Name = "MaimRibbon";
+            this.Name = "MainRibbon";
             this.RibbonType = "Microsoft.Excel.Workbook";
             this.Tabs.Add(this.tabEWorkHelper);
             this.tabEWorkHelper.ResumeLayout(false);

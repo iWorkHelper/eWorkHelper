@@ -9,8 +9,8 @@
 # Build results
 [Bb]in/
 [Oo]bj/
-[Dd]ebug/
-[Rr]elease/
+/[Dd]ebug/
+/[Rr]elease/
 x64/
 x86/
 [Aa][Rr][Mm]/
@@ -36,6 +36,8 @@ bld/
 *.tlog
 *.lastbuildstate
 *.unsuccessfulbuild
+*.DotSettings.user
+_ReSharper*/
 
 # NuGet local artifacts (keep packages.config and project references)
 packages/
@@ -50,6 +52,7 @@ publish/
 Publish/
 app.publish/
 *.publish.xml
+*.pubxml
 *.pubxml.user
 *.publishproj
 *.deploy
@@ -75,7 +78,16 @@ app.publish/
 *.orig
 *.log
 *.svclog
+*.dmp
+*.dump
+*.stackdump
+*.crash
+*.pid
+*.trace
+*.etl
 *.userprefs
+*.export
+*.exported
 ~$*
 *~
 

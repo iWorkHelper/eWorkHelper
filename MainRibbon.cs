@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace eWorkhelper
 {
-    public partial class MaimRibbon
+    public partial class MainRibbon
     {
         private readonly BatchFilterService batchFilterService = new BatchFilterService();
 

@@ -42,11 +42,11 @@ eWorkHelper 是一个面向 Microsoft Excel 桌面版的 VSTO 加载项。目前
 eWorkhelper.sln              Visual Studio 解决方案
 eWorkhelper.csproj           Excel VSTO Add-in 项目
 ThisAddIn.*                  VSTO Add-in 主机项和生成代码
-RibbonTest.*                 Ribbon Designer、事件入口和资源
+MainRibbon.*                 Ribbon Designer、事件入口和资源
 BatchFilterForm.cs           批量过滤窗口
 BatchFilterService.cs        范围识别、条件匹配和 AutoFilter 逻辑
 Properties/                  程序集、资源和设置
-docs/                        开发约束、开发记录和安全审计
+docs/                        开发、架构、功能、测试、版本和发布文档
 ```
 
 ## 编译
@@ -90,11 +90,11 @@ docs/                        开发约束、开发记录和安全审计
 
 ## 开发与贡献
 
-提交修改前请先阅读 [`docs/DevelopmentConstraints.md`](docs/DevelopmentConstraints.md) 和 [`docs/Development.md`](docs/Development.md)。变更应保持 VSTO 生命周期、Ribbon Designer 资源关系和 Excel 原生筛选行为，并同时更新开发记录。建议至少完成 Debug、Release 构建及受影响 Excel 交互的人工验证。
+开发文档总入口为 [`docs/Development.md`](docs/Development.md)。提交修改前请同时阅读 [`docs/DevelopmentConstraints.md`](docs/DevelopmentConstraints.md)；涉及版本或发布时遵守 [`docs/Versioning.md`](docs/Versioning.md) 和 [`docs/Release/ReleaseChecklist.md`](docs/Release/ReleaseChecklist.md)。变更应保持 VSTO 生命周期、Ribbon Designer 资源关系和 Excel 原生筛选行为，并完成适用的 Debug、Release 构建及 Excel 人工回归。
 
 ## 安全与隐私
 
-项目不应包含 API Key、Token、密码、证书、私钥、签名凭据、个人或组织身份信息、内部地址及本机绝对路径。公开发布前的审计摘要见 [`docs/SecurityReview.md`](docs/SecurityReview.md)。批量过滤逻辑在本地 Excel/VSTO 进程中运行；当前代码没有网络上传功能。
+项目不应包含 API Key、Token、密码、证书、私钥、签名凭据、个人或组织身份信息、内部地址及本机绝对路径。公开发布前必须执行 [`docs/Release/ReleaseChecklist.md`](docs/Release/ReleaseChecklist.md) 中的安全检查。批量过滤逻辑在本地 Excel/VSTO 进程中运行；当前代码没有网络上传功能。
 
 ## License
 
