@@ -2,7 +2,7 @@
 
 ## Version
 
-v1.1.260822.6
+v1.2.0
 
 ## Release date
 
@@ -31,8 +31,8 @@ This eWorkHelper Excel VSTO Add-in build adds batch unmerge-and-fill while retai
 - Visual Studio Tools for Office (VSTO) Excel Add-in.
 - Excel/Office Interop with embedded interop types.
 - Windows Forms dialog and VSTO Ribbon Designer resources.
-- Product version (`AssemblyInformationalVersion`): `1.1.260822.6`.
-- CLR/VSTO compatibility version: `1.0.0.0`.
+- Product version (`AssemblyInformationalVersion`): `1.2.0`.
+- Assembly and VSTO four-part version: `1.2.0.0`.
 
 ## Requirements
 

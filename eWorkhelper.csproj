@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--
     This section defines project-level properties.
@@ -31,12 +31,13 @@
     <ResolveComReferenceSilent>true</ResolveComReferenceSilent>
     <!-- Public source builds do not depend on a developer-specific certificate. -->
     <SignManifests>true</SignManifests>
+    <ManifestCertificateThumbprint Condition="'$(IWORKHELPER_MANIFEST_CERT_THUMBPRINT)' != '' and '$(ManifestCertificateThumbprint)' == ''">$(IWORKHELPER_MANIFEST_CERT_THUMBPRINT)</ManifestCertificateThumbprint>
     <IsWebBootstrapper>False</IsWebBootstrapper>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <PublishUrl>publish\</PublishUrl>
     <InstallUrl />
     <TargetCulture>zh-chs</TargetCulture>
-    <ApplicationVersion>1.1.0.6</ApplicationVersion>
+    <ApplicationVersion>1.2.0.0</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
     <UpdateEnabled>false</UpdateEnabled>
     <UpdateInterval>0</UpdateInterval>

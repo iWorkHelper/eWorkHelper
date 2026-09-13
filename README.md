@@ -6,7 +6,7 @@ eWorkHelper 是 [iWorkHelper](https://github.com/iWorkHelper) 旗下的 Microsof
 
 ## 当前版本
 
-当前版本为 `1.1.260822.6`。版本号规则见 [`docs/Versioning.md`](docs/Versioning.md)。
+当前版本为 `1.2.0`。版本与发布规则见 [`docs/RELEASE.md`](docs/RELEASE.md)。
 
 ## 主要功能
 
@@ -71,7 +71,7 @@ BatchFilterForm.cs           批量过滤窗口
 BatchFilterService.cs        范围识别、条件匹配和 AutoFilter 逻辑
 UnmergeAndFillService.cs     合并区域发现、去重、取消合并与内容填充
 Properties/                  程序集、资源和设置
-docs/                        开发、架构、功能、测试、版本和发布文档
+docs/                        架构、功能、开发、发布和变更文档
 ```
 
 ## 编译
@@ -99,20 +99,19 @@ docs/                        开发、架构、功能、测试、版本和发布
 
 ## 开发与贡献
 
-开发文档总入口为 [`docs/Development.md`](docs/Development.md)。提交修改前请同时阅读 [`docs/DevelopmentConstraints.md`](docs/DevelopmentConstraints.md)；涉及版本或发布时遵守 [`docs/Versioning.md`](docs/Versioning.md) 和 [`docs/Release/ReleaseChecklist.md`](docs/Release/ReleaseChecklist.md)。变更应保持 VSTO 生命周期、Ribbon Designer 资源关系和 Excel 原生筛选行为，并完成适用的 Debug、Release 构建及 Excel 人工回归。
+开发文档总入口为 [`docs/Development.md`](docs/Development.md)。涉及架构、功能或发布时同步阅读 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)、[`docs/FEATURES.md`](docs/FEATURES.md) 和 [`docs/RELEASE.md`](docs/RELEASE.md)。变更应保持 VSTO 生命周期、Ribbon Designer 资源关系和 Excel 原生筛选行为，并完成适用的构建及 Excel 人工回归。
 
 ## 安全与隐私
 
-项目不应包含 API Key、Token、密码、证书、私钥、签名凭据、个人或组织身份信息、内部地址及本机绝对路径。公开发布前必须执行 [`docs/Release/ReleaseChecklist.md`](docs/Release/ReleaseChecklist.md) 中的安全检查。批量过滤逻辑在本地 Excel/VSTO 进程中运行；当前代码没有网络上传功能。
+项目不应包含 API Key、Token、密码、证书、私钥、签名凭据、个人或组织身份信息、内部地址及本机绝对路径。公开发布前按 [`docs/RELEASE.md`](docs/RELEASE.md) 完成安全检查。批量过滤逻辑在本地 Excel/VSTO 进程中运行；当前代码没有网络上传功能。
 
 ## 文档入口
 
+- [架构说明](docs/ARCHITECTURE.md)
+- [功能说明](docs/FEATURES.md)
 - [开发说明](docs/Development.md)
-- [开发约束](docs/DevelopmentConstraints.md)
-- [架构说明](docs/Architecture/VstoArchitecture.md)
-- [版本号规范](docs/Versioning.md)
-- [发布检查清单](docs/Release/ReleaseChecklist.md)
-- [回归测试清单](docs/Testing/RegressionChecklist.md)
+- [发布说明](docs/RELEASE.md)
+- [变更记录](docs/CHANGELOG.md)
 - [Release Notes](RELEASE_NOTES.md)
 
 ## Release

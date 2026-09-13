@@ -1,84 +1,39 @@
 # eWorkHelper 开发说明
 
-本文档是 `/docs` 的开发入口。开始任何修改前，先阅读 [`DevelopmentConstraints.md`](DevelopmentConstraints.md)，再根据任务类型阅读对应设计、测试、版本或发布文档。
-
 ## 开发流程
 
-1. 阅读开发约束、相关设计和现有代码。
-2. 明确需求、影响范围、方案和风险；不确定用途的文件不得直接删除。
-3. 只修改任务所需内容，保持 VSTO 生命周期、Excel 对象边界和现有业务行为。
-4. 执行与风险相称的静态检查、自动测试、Debug/Release 构建和 Excel 人工验证。
-5. 更新当前设计文档和精简的开发日志，明确未验证项与已知限制。
-6. 进行 Git 操作或发布前，必须先完成敏感信息检查和发布清单。
+1. 阅读 `README.md` 和 `/docs` 中与任务相关的长期文档。
+2. 先理解现有实现、VSTO 生命周期、Ribbon Designer 资源关系和 Excel Object Model 行为。
+3. 采用最小修改，避免无关重构、公共接口变化或发布环境要求升级。
+4. 修改后执行覆盖本次变更的构建、测试或人工验证。
+5. 涉及功能、版本、发布或已知限制时同步更新文档。
 
 ## 文档导航
 
-### 核心规范
-
-- [`DevelopmentConstraints.md`](DevelopmentConstraints.md)：所有开发长期遵守的约束。
-- [`Versioning.md`](Versioning.md)：唯一版本号规则及 .NET Framework 元数据映射。
-- [`DevelopmentLog.md`](DevelopmentLog.md)：重要功能、架构、兼容性与发布准备的精简变更记录。
-
-### 架构
-
-- [`Architecture/VstoArchitecture.md`](Architecture/VstoArchitecture.md)：技术基线、模块职责和 Excel/VSTO 交互原则。
-
-### 正式功能
-
-- [`Features/BatchFiltering.md`](Features/BatchFiltering.md)：批量文本过滤的当前行为、范围规则和限制。
-- [`Features/UnmergeAndFill.md`](Features/UnmergeAndFill.md)：取消合并并填充的处理流程、公式策略、边界和验收标准。
-
-### 测试
-
-- [`Testing/RegressionChecklist.md`](Testing/RegressionChecklist.md)：构建、VSTO 基线和批量过滤长期回归清单。
-
-### 发布
-
-- [`Release/ReleaseChecklist.md`](Release/ReleaseChecklist.md)：GitHub 发布、安全审计、构建和版本检查清单。
+- [ARCHITECTURE.md](ARCHITECTURE.md)：技术基线、模块职责、Excel/VSTO 交互、签名与部署原则。
+- [FEATURES.md](FEATURES.md)：批量过滤、取消合并并填充、关于入口和已知限制。
+- [RELEASE.md](RELEASE.md)：版本规则、构建命令、发布前检查和当前变更摘要。
+- [CHANGELOG.md](CHANGELOG.md)：长期变更记录。
 
 ## 当前项目基线
 
-- Visual Studio 2022、C#、.NET Framework 4.8、VSTO 4.0。
-- Windows 桌面版 Microsoft Excel 宿主。
-- 解决方案：`eWorkhelper.sln`；项目：`eWorkhelper.csproj`。
-- 唯一 Ribbon 实现：`MainRibbon.cs`、`MainRibbon.Designer.cs`、`MainRibbon.resx`。
-- 当前正式功能：批量文本过滤、取消合并并填充，以及位于 Ribbon 末端、动态显示程序集版本的“关于”入口。
-- 当前完整产品版本：`1.1.260822.6`，由 `AssemblyInformationalVersion` 表示。
-
-## 已有筛选自动加载
-
-- 打开批量过滤窗口时，仅当当前目标字段的 `Filters[fieldIndex].On` 为 `true` 才加载内容；只有筛选箭头而目标字段未实际过滤时，文本框保持为空。
-- 若目标 Filter 仍与本次 Add-in 会话中 eWorkHelper 最近保存的 Filter 签名一致，则恢复用户原始多行条件和匹配方式，不展开为实际匹配结果。
-- 若筛选来自 Excel 菜单、插件启动前或无法匹配运行时状态，则读取当前整个 AutoFilter 状态下目标列的可见数据，去除空值、按首次出现顺序去重，并以“等于”模式回填。
-- 可见数据通过目标 DataRange 的 `SpecialCells(xlCellTypeVisible)` 获取，并按 Areas 批量读取 `Value2`；不逐单元格读取、不清除当前或其他字段筛选。
-- 当前筛选为零行时文本框保持为空并显示状态提示，不自动清除筛选。
-- 公开源码不绑定开发者证书，不包含签名凭据或预构建安装包。
-
-## 已验证基线
-
-历史人工验证已确认 Visual Studio F5 启动 Excel、Add-in 加载、Ribbon 显示和按钮事件链路可用。当前正式功能后续变更必须按回归清单重新验证受影响部分，不得把历史测试按钮或临时调试入口重新引入项目。
+- 语言：C#。
+- 目标框架：.NET Framework 4.8。
+- 宿主：Microsoft Excel 桌面版。
+- UI：VSTO Ribbon Designer + Windows Forms。
+- 当前产品版本：`1.2.0`。
 
 ## 构建与调试
 
-1. 使用 Visual Studio 2022 打开 `eWorkhelper.sln`。
-2. 确认安装 .NET Framework 4.8 Developer Pack、VSTO/Office 开发工具和桌面版 Excel。
-3. 分别选择 `Debug | Any CPU`、`Release | Any CPU` 构建。
-4. F5 调试使用项目内 Excel Host/Start Action 启动新的 Excel 实例。
-
-完整 VSTO 清单构建需要本地签名配置。证书、私钥、指纹和用户级发布配置只允许存在于受保护的本地/发布环境，不得提交到 Git。
-
-## 当前项目结构
-
-```text
-eWorkhelper.sln
-eWorkhelper.csproj
-ThisAddIn.*
-MainRibbon.*
-BatchFilterForm.cs
-BatchFilterService.cs
-UnmergeAndFillService.cs
-Properties/
-docs/
+```powershell
+msbuild .\eWorkhelper.sln /t:Restore,Rebuild /p:Configuration=Release /p:Platform="Any CPU" /p:ManifestCertificateThumbprint=<thumbprint>
 ```
 
-项目没有独立自动化测试项目。任何新增长期有效测试应纳入解决方案并在回归清单中记录，不得使用临时测试入口替代可维护测试。
+F5 调试需要 Visual Studio 2022、VSTO 工具、.NET Framework 4.8 Developer Pack 和本机 Excel。VSTO manifest 构建需要签名证书；证书、私钥、指纹和用户级发布配置不得提交。
+
+## 验证要求
+
+- 发布构建目标为 0 Error / 0 Warning。
+- 批量过滤需验证表格、已有 AutoFilter、普通标题行选择、四种匹配方式和清除本次过滤。
+- 取消合并并填充需验证单区域、多区域、公式、空值、保护工作表和异常状态恢复。
+- 发布前必须扫描敏感信息、本机路径、构建产物、日志和临时文件。
