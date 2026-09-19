@@ -36,5 +36,26 @@ namespace eWorkhelper
                 // 对象可能已被 Excel 回收或已释放；释放路径不得抛出。
             }
         }
+
+        /// <summary>
+        /// 释放调用方临时取得的一次宿主 COM 引用。与 Release 不同，这里不能使用
+        /// FinalReleaseComObject，因为对象可能仍由 Excel/VSTO 或其他调用方持有。
+        /// </summary>
+        internal static void ReleaseBorrowed(object comObject)
+        {
+            if (comObject == null || !Marshal.IsComObject(comObject))
+            {
+                return;
+            }
+
+            try
+            {
+                Marshal.ReleaseComObject(comObject);
+            }
+            catch (Exception)
+            {
+                // 借用引用的清理不得掩盖原始操作异常。
+            }
+        }
     }
 }

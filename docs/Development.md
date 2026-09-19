@@ -23,7 +23,7 @@
 - 目标框架：.NET Framework 4.8。
 - 宿主：Microsoft Excel 桌面版。
 - UI：VSTO Ribbon Designer + Windows Forms。
-- 当前产品版本：`1.2.1`。
+- 当前产品版本：`1.3.0`。
 
 ## 构建与调试
 

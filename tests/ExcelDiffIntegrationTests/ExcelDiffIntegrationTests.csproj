@@ -1,0 +1,41 @@
+<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5E8F79AA-9866-49D5-9D6A-0BDFE8012B2D}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ExcelDiffIntegrationTests</RootNamespace>
+    <AssemblyName>ExcelDiffIntegrationTests</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <LangVersion>7.3</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <Private>False</Private>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\ComHelper.cs" Link="ComHelper.cs" />
+    <Compile Include="..\..\ExcelDiffModels.cs" Link="ExcelDiffModels.cs" />
+    <Compile Include="..\..\ExcelDiffEngine.cs" Link="ExcelDiffEngine.cs" />
+    <Compile Include="..\..\ExcelDiffInteropPrototype.cs" Link="ExcelDiffInteropPrototype.cs" />
+    <Compile Include="..\..\ExcelDiffService.cs" Link="ExcelDiffService.cs" />
+    <Compile Include="..\..\ExcelDiffProgressMonitoring.cs" Link="ExcelDiffProgressMonitoring.cs" />
+    <Compile Include="..\..\ExcelDiffForm.cs" Link="ExcelDiffForm.cs" />
+    <Compile Include="..\..\BatchFilterService.cs" Link="BatchFilterService.cs" />
+    <Compile Include="..\..\UnmergeAndFillService.cs" Link="UnmergeAndFillService.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

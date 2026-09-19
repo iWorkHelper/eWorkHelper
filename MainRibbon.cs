@@ -10,6 +10,33 @@ namespace eWorkhelper
         private readonly BatchFilterService batchFilterService = new BatchFilterService();
         private readonly UnmergeAndFillService unmergeAndFillService = new UnmergeAndFillService();
 
+        private void btnExcelDiff_Click(object sender, RibbonControlEventArgs e)
+        {
+            ExcelDiffForm form = null;
+            try
+            {
+                var application = Globals.ThisAddIn.Application;
+                var baseline = ExcelDiffWorkbookIdentity.CaptureActive(application);
+                form = new ExcelDiffForm(application, baseline);
+                form.ShowDialog();
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(
+                    "打开 Excel 差异对比失败：" + exception.Message,
+                    "Excel 差异对比",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (form != null)
+                {
+                    form.Dispose();
+                }
+            }
+        }
+
         private void btnBatchFilter_Click(object sender, RibbonControlEventArgs e)
         {
             // E-04：整段回调受保护；异常越过 VSTO Ribbon 边界会触发 CLR 未处理异常对话框，

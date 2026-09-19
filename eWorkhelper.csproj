@@ -44,7 +44,7 @@
     <PublishUrl>publish\</PublishUrl>
     <InstallUrl />
     <TargetCulture>zh-chs</TargetCulture>
-    <ApplicationVersion>1.2.1.0</ApplicationVersion>
+    <ApplicationVersion>1.3.0.0</ApplicationVersion>
     <!-- E-17：固定修订号，使发布版本可复现。 -->
     <AutoIncrementApplicationRevision>false</AutoIncrementApplicationRevision>
     <UpdateEnabled>false</UpdateEnabled>
@@ -235,9 +235,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <None Include="Properties\Settings.settings" />
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
     </Compile>
+    <None Include="eWorkhelper_TemporaryKey.pfx" />
     <None Include="ThisAddIn.Designer.xml">
       <DependentUpon>ThisAddIn.cs</DependentUpon>
     </None>
@@ -256,6 +258,24 @@
     <Compile Include="UnmergeAndFillService.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ExcelDiffModels.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExcelDiffEngine.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExcelDiffInteropPrototype.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExcelDiffService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExcelDiffProgressMonitoring.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExcelDiffForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MainRibbon.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -273,9 +293,21 @@
   <ItemGroup>
     <None Include="Resources\mergecell.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Diff.png" />
+  </ItemGroup>
   <PropertyGroup>
     <!-- E-17：不再回落到 v10.0；MSBuild/VS 会提供 $(VisualStudioVersion)。 -->
     <VSToolsPath Condition="'$(VSToolsPath)' == '' and '$(VisualStudioVersion)' != ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>eWorkhelper_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>7D25FA00BD0AC50CD8A1D2370E4CCE20EFF1FB16</ManifestCertificateThumbprint>
   </PropertyGroup>
   <!-- Include the build rules for a C# project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

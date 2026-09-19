@@ -71,13 +71,16 @@ namespace eWorkhelper
 
             disposed = true;
 
-            // 逆序释放，与获取顺序相反。注意绝不释放 Application（VSTO 宿主项）。
+            // 逆序释放，与获取顺序相反。Application、Workbook、Worksheet 均由宿主/用户持有，
+            // 不在上下文中 FinalRelease；只释放本次筛选取得并由上下文拥有的范围对象。
             for (int index = ownedComObjects.Count - 1; index >= 0; index--)
             {
                 ComHelper.Release(ownedComObjects[index]);
             }
 
             ownedComObjects.Clear();
+            ComHelper.ReleaseBorrowed(Worksheet);
+            ComHelper.ReleaseBorrowed(Workbook);
             AutoFilter = null;
             FilterRange = null;
             DataRange = null;
@@ -179,12 +182,18 @@ namespace eWorkhelper
                         listObject = activeCell.ListObject;
                         if (listObject != null)
                         {
-                            return TryCreateListObjectContext(application, worksheet, listObject, targetColumn, out context, out errorMessage);
+                            bool built = TryCreateListObjectContext(application, worksheet, listObject, targetColumn, out context, out errorMessage);
+                            if (built)
+                            {
+                                // 该分支已将范围对象交给调用方；外层 finally 不得把刚建立的上下文释放掉。
+                                handedOff = true;
+                            }
+                            return built;
                         }
                     }
                     finally
                     {
-                        ComHelper.Release(listObject);
+                        ComHelper.ReleaseBorrowed(listObject);
                     }
 
                     bool autoFilterMode = worksheet.AutoFilterMode;
@@ -296,10 +305,10 @@ namespace eWorkhelper
                 finally
                 {
                     // 成功交接后，worksheet/activeCell 的所有权归上下文，由 Dispose 统一释放。
+                    ComHelper.ReleaseBorrowed(activeCell);
                     if (!handedOff)
                     {
-                        ComHelper.Release(activeCell);
-                        ComHelper.Release(worksheet);
+                        ComHelper.ReleaseBorrowed(worksheet);
                     }
                 }
             }
@@ -1159,13 +1168,11 @@ namespace eWorkhelper
                     DataRowCount = dataRowCount
                 };
 
-                // 上下文负责在释放时回收这些 RCW。
+                // 上下文负责在释放时回收本次筛选取得的范围和筛选对象。
                 built.Track(headerRange);
-                built.Track(workbook);
                 built.Track(dataRange);
                 built.Track(autoFilter);
                 built.Track(filterRange);
-                built.Track(worksheet);
 
                 context = built;
                 return true;
@@ -1182,7 +1189,7 @@ namespace eWorkhelper
                     // 未交接给调用方的中间对象在这里释放。
                     ComHelper.Release(headerCell);
                     ComHelper.Release(headerRange);
-                    ComHelper.Release(workbook);
+                    ComHelper.ReleaseBorrowed(workbook);
                     if (knownDataRange == null)
                     {
                         ComHelper.Release(dataRange);
