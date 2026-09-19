@@ -29,16 +29,24 @@
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <DefineConstants>VSTO40;UseOfficeInterop</DefineConstants>
     <ResolveComReferenceSilent>true</ResolveComReferenceSilent>
-    <!-- Public source builds do not depend on a developer-specific certificate. -->
-    <SignManifests>true</SignManifests>
+    <!--
+      E-10：公开源码不绑定开发者证书。
+      仅当调用方显式提供指纹（MSBuild 属性或 IWORKHELPER_MANIFEST_CERT_THUMBPRINT
+      环境变量）时才要求清单签名，避免默认把"必须签名"强加给每个构建。
+      注意：Office.targets 的 ManageCertificateStore 任务本身始终需要指纹，
+      因此本地构建仍必须通过 /p:ManifestCertificateThumbprint=… 提供证书。
+    -->
     <ManifestCertificateThumbprint Condition="'$(IWORKHELPER_MANIFEST_CERT_THUMBPRINT)' != '' and '$(ManifestCertificateThumbprint)' == ''">$(IWORKHELPER_MANIFEST_CERT_THUMBPRINT)</ManifestCertificateThumbprint>
+    <SignManifests Condition="'$(SignManifests)' == '' and '$(ManifestCertificateThumbprint)' != ''">true</SignManifests>
+    <SignManifests Condition="'$(SignManifests)' == ''">false</SignManifests>
     <IsWebBootstrapper>False</IsWebBootstrapper>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <PublishUrl>publish\</PublishUrl>
     <InstallUrl />
     <TargetCulture>zh-chs</TargetCulture>
-    <ApplicationVersion>1.2.0.0</ApplicationVersion>
-    <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
+    <ApplicationVersion>1.2.1.0</ApplicationVersion>
+    <!-- E-17：固定修订号，使发布版本可复现。 -->
+    <AutoIncrementApplicationRevision>false</AutoIncrementApplicationRevision>
     <UpdateEnabled>false</UpdateEnabled>
     <UpdateInterval>0</UpdateInterval>
     <UpdateIntervalUnits>days</UpdateIntervalUnits>
@@ -54,11 +62,6 @@
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.8 %28x86 和 x64%29</ProductName>
       <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.VSTORuntime.4.0">
       <Visible>False</Visible>
@@ -96,7 +99,8 @@
     <OutputPath>bin\Debug\</OutputPath>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
-    <WarningLevel>5</WarningLevel>
+    <!-- E-17：C# 合法警告级别为 0–4，与 Release 保持一致。 -->
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <!--
     This section defines properties that are set when the "Release" configuration is selected.
@@ -227,10 +231,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -246,6 +246,9 @@
     </Compile>
     <Compile Include="BatchFilterForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ComHelper.cs">
+      <SubType>Code</SubType>
     </Compile>
     <Compile Include="BatchFilterService.cs">
       <SubType>Code</SubType>
@@ -265,17 +268,14 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Filter.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\info.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\mergecell.png" />
   </ItemGroup>
   <PropertyGroup>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <!-- E-17：不再回落到 v10.0；MSBuild/VS 会提供 $(VisualStudioVersion)。 -->
+    <VSToolsPath Condition="'$(VSToolsPath)' == '' and '$(VisualStudioVersion)' != ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <!-- Include the build rules for a C# project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

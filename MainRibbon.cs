@@ -12,21 +12,52 @@ namespace eWorkhelper
 
         private void btnBatchFilter_Click(object sender, RibbonControlEventArgs e)
         {
-            BatchFilterContext context;
-            string errorMessage;
-            if (!batchFilterService.TryCreateContext(Globals.ThisAddIn.Application, out context, out errorMessage))
+            // E-04：整段回调受保护；异常越过 VSTO Ribbon 边界会触发 CLR 未处理异常对话框，
+            // 反复失败还可能导致加载项被 Excel 禁用。
+            BatchFilterContext context = null;
+            try
             {
-                if (!string.IsNullOrEmpty(errorMessage))
+                string errorMessage;
+                if (!batchFilterService.TryCreateContext(Globals.ThisAddIn.Application, out context, out errorMessage))
                 {
-                    MessageBox.Show(errorMessage, "批量过滤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        MessageBox.Show(errorMessage, "批量过滤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+
+                    return;
                 }
 
-                return;
+                // BatchFilterForm.Dispose 负责释放上下文持有的 RCW（E-03）。
+                BatchFilterForm form = null;
+                try
+                {
+                    form = new BatchFilterForm(batchFilterService, context);
+                    context = null;
+                    form.ShowDialog();
+                }
+                finally
+                {
+                    if (form != null)
+                    {
+                        form.Dispose();
+                    }
+                }
             }
-
-            using (BatchFilterForm form = new BatchFilterForm(batchFilterService, context))
+            catch (Exception exception)
             {
-                form.ShowDialog();
+                MessageBox.Show(
+                    "批量过滤失败：" + exception.Message,
+                    "批量过滤",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (context != null)
+                {
+                    context.Dispose();
+                }
             }
         }
 

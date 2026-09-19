@@ -36,7 +36,8 @@ namespace eWorkhelper
             //
             // tabEWorkHelper
             //
-            this.tabEWorkHelper.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
+            // E-11：自定义选项卡使用 RibbonControlIdType.Custom，不再声明 Office 类型却不给 OfficeId。
+            this.tabEWorkHelper.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Custom;
             this.tabEWorkHelper.Groups.Add(this.grpDataTools);
             this.tabEWorkHelper.Groups.Add(this.grpAbout);
             this.tabEWorkHelper.Label = "工作助手";

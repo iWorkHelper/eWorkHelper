@@ -6,12 +6,12 @@ eWorkHelper 是 [iWorkHelper](https://github.com/iWorkHelper) 旗下的 Microsof
 
 ## 当前版本
 
-当前版本为 `1.2.0`。版本与发布规则见 [`docs/RELEASE.md`](docs/RELEASE.md)。
+当前版本为 `1.2.1`。版本与发布规则见 [`docs/RELEASE.md`](docs/RELEASE.md)。
 
 ## 主要功能
 
-- 在 Excel Ribbon 的 `eWorkHelper` 选项卡中提供“批量过滤”入口。
-- 支持每行一个过滤条件，并自动去除空行、首尾空格和完全重复的条件。
+- 在 Excel Ribbon 的自定义“工作助手”选项卡中提供“批量过滤”入口。
+- 支持每行一个过滤条件，并自动去除空行、首尾空格和完全重复的条件（去重不区分大小写）。
 - 支持“等于”“不等于”“包含”“不包含”四种不区分大小写的文本匹配方式。
 - 支持 Excel 表格（ListObject）、已有 AutoFilter 区域，以及由用户选择标题行后建立的普通数据区域。
 - 使用 Excel 原生 AutoFilter，不写改单元格、不创建辅助列或临时工作表。
@@ -46,12 +46,12 @@ Release 中的编译组件包用于版本核验和受控部署，不是可直接
 1. 在 Visual Studio 中将 `eWorkhelper` 设为启动项目。
 2. 选择 `Debug | Any CPU` 并按 F5；VSTO 项目将启动新的 Excel 实例。
 3. 在 Excel 中打开工作簿，选择需要过滤列中的一个单元格。
-4. 打开 `eWorkHelper` 选项卡，点击“批量过滤”。
-5. 每行输入一个条件，选择匹配方式，然后点击“应用过滤”。
+4. 打开“工作助手”选项卡，点击“批量过滤”。
+5. 每行输入一个条件，选择匹配方式，然后点击“应用过滤”。长任务期间可按 Esc 取消，窗口会显示进度并在结束时恢复工作表状态。
 
-如需取消合并并填充，请选择一个或多个包含合并单元格的区域，然后点击 Ribbon 中的“取消合并并填充”。公式会按 Excel 的 R1C1 复制语义填充。如果当前工作表没有 AutoFilter，工具会要求选择数据标题行；取消选择不会修改工作表。
+如需取消合并并填充，请选择一个或多个包含合并单元格的区域，然后点击 Ribbon 中的“取消合并”按钮。公式会按 Excel 的 R1C1 复制语义填充。如果当前工作表没有 AutoFilter，工具会要求选择数据标题行；取消选择不会修改工作表。
 
-> `eWorkhelper` 是现有 Visual Studio 工程内部标识。为避免影响 VSTO、ClickOnce、调试和升级兼容，本轮不调整其大小写；面向用户的品牌名称统一为 `eWorkHelper`。
+> `eWorkhelper` 是现有 Visual Studio 工程内部标识。为避免影响 VSTO、ClickOnce、调试和升级兼容，本轮不调整其大小写；面向用户的品牌名称统一为 `eWorkHelper`，Ribbon 选项卡文案为“工作助手”。
 
 ## 开发环境
 
@@ -67,10 +67,11 @@ eWorkhelper.sln              Visual Studio 解决方案
 eWorkhelper.csproj           Excel VSTO Add-in 项目
 ThisAddIn.*                  VSTO Add-in 主机项和生成代码
 MainRibbon.*                 Ribbon Designer、事件入口和资源
-BatchFilterForm.cs           批量过滤窗口
+BatchFilterForm.cs           批量过滤窗口（进度、取消、上下文释放）
 BatchFilterService.cs        范围识别、条件匹配和 AutoFilter 逻辑
 UnmergeAndFillService.cs     合并区域发现、去重、取消合并与内容填充
-Properties/                  程序集、资源和设置
+ComHelper.cs                 Excel COM 对象释放助手
+Properties/                  程序集和资源
 docs/                        架构、功能、开发、发布和变更文档
 ```
 
@@ -79,12 +80,30 @@ docs/                        架构、功能、开发、发布和变更文档
 1. 在 Visual Studio 2022 中打开 `eWorkhelper.sln`。
 2. 确认 VSTO、.NET Framework 4.8 和 Excel 开发组件可用。
 3. 选择 `Debug | Any CPU` 或 `Release | Any CPU`。
-4. 选择“生成解决方案”或在 Developer PowerShell 中使用对应 Visual Studio MSBuild：
+4. VSTO 清单签名是强制步骤：构建环境必须能访问签名证书，并通过 MSBuild 属性或环境变量提供指纹。
+
+   方式一 —— 直接传入 MSBuild 属性：
 
    ```powershell
-   msbuild .\eWorkhelper.sln /t:Rebuild /p:Configuration=Debug /p:Platform="Any CPU"
+   msbuild .\eWorkhelper.sln /t:Rebuild /p:Configuration=Debug /p:Platform="Any CPU" /p:SignManifests=true /p:ManifestCertificateThumbprint=<certificate-thumbprint>
+   msbuild .\eWorkhelper.sln /t:Rebuild /p:Configuration=Release /p:Platform="Any CPU" /p:SignManifests=true /p:ManifestCertificateThumbprint=<certificate-thumbprint>
+   ```
+
+   方式二 —— 使用环境变量（`SignManifests` 会因指纹存在而自动为 `true`）：
+
+   ```powershell
+   $env:IWORKHELPER_MANIFEST_CERT_THUMBPRINT = '<certificate-thumbprint>'
    msbuild .\eWorkhelper.sln /t:Rebuild /p:Configuration=Release /p:Platform="Any CPU"
    ```
+
+   两种方式都可以用以下命令验证（要求退出码 0）：
+
+   ```powershell
+   msbuild .\eWorkhelper.sln /t:Rebuild /p:Configuration=Release /p:Platform="Any CPU" /p:SignManifests=true /p:ManifestCertificateThumbprint=<certificate-thumbprint> /v:minimal /nologo
+   ```
+
+   > 缺少指纹时构建会失败并报告 `MSB4044: 未给任务"ManageCertificateStore"的必需参数"CertificateThumbprint"赋值`。
+   > 这是 VSTO 工具链的固定要求，不是本项目配置错误。
 
 公开项目文件默认不绑定开发者证书。需要制作签名部署包时，请仅在受保护的本地或发布环境中配置证书，不要提交证书、私钥、指纹或用户级发布配置。
 
@@ -93,13 +112,16 @@ docs/                        架构、功能、开发、发布和变更文档
 - 仅支持 Windows 上的 Microsoft Excel 桌面版，不支持 Excel 网页版或 macOS 版。
 - 当前界面和提示文本为中文。
 - 匹配以单元格转换后的显示文本语义进行，不区分大小写；不提供正则表达式或公式条件。
+- “不区分大小写”通过 .NET `OrdinalIgnoreCase` 实现，并非完整的 Unicode 大小写折叠：土耳其语/阿塞拜疆语的 `i`/`İ` 等区域特有大小写对不会被视作同一个字符。
+- 匹配集合超过 Excel 筛选值列表容量（10000 项）时工具会给出明确提示并保持工作表不变，而不是让 Excel 抛出原始 COM 错误；单个条件长度上限为 8192 字符。
 - 工具依赖 Excel 原生 AutoFilter 的值列表能力；极大数据集或大量唯一值的性能取决于 Excel 和本机环境。
-- “清除本次过滤”的状态保存在当前 Add-in 进程内存中，Add-in 卸载后不会保留该状态。
+- “清除本次过滤”的状态保存在加载项进程内存中，且**每个 Excel 窗口（每个 Ribbon 实例）各有一份**：同一进程内的其他窗口看不到该状态，加载项卸载后状态也不会保留。
+- 取消合并并填充不是 Excel 事务：若某个区域失败，已完成的区域不会自动回滚，工具会在错误提示中说明已处理的数量。
 - 发布包制作、签名安装与不同 Office 版本/位数组合仍需维护者在目标环境中验证。
 
 ## 开发与贡献
 
-开发文档总入口为 [`docs/Development.md`](docs/Development.md)。涉及架构、功能或发布时同步阅读 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)、[`docs/FEATURES.md`](docs/FEATURES.md) 和 [`docs/RELEASE.md`](docs/RELEASE.md)。变更应保持 VSTO 生命周期、Ribbon Designer 资源关系和 Excel 原生筛选行为，并完成适用的构建及 Excel 人工回归。
+开发文档总入口为 [`docs/Development.md`](docs/Development.md)。涉及架构、功能或发布时同步阅读 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)、[`docs/FEATURES.md`](docs/FEATURES.md)、[`docs/RELEASE.md`](docs/RELEASE.md) 和 [`docs/TESTING.md`](docs/TESTING.md)。变更应保持 VSTO 生命周期、Ribbon Designer 资源关系和 Excel 原生筛选行为，并完成适用的构建及 Excel 人工回归。
 
 ## 安全与隐私
 
@@ -111,8 +133,9 @@ docs/                        架构、功能、开发、发布和变更文档
 - [功能说明](docs/FEATURES.md)
 - [开发说明](docs/Development.md)
 - [发布说明](docs/RELEASE.md)
-- [变更记录](docs/CHANGELOG.md)
-- [Release Notes](RELEASE_NOTES.md)
+- [人工回归清单](docs/TESTING.md)
+- [变更记录](docs/CHANGELOG.md)（唯一的权威发布历史）
+- [Release Notes](RELEASE_NOTES.md)（指向 `docs/CHANGELOG.md`）
 
 ## Release
 
